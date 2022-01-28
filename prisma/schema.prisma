@@ -1,0 +1,165 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["selectRelationCount"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model bans {
+  id     Int     @id @default(autoincrement())
+  reason String
+  users  users[]
+}
+
+model tokens {
+  user_id            String   @id
+  new_account_token  String?
+  new_password_token String?
+  updated_at         DateTime @default(now()) @updatedAt
+  user               users    @relation(fields: [user_id], references: [id])
+}
+
+model users {
+  id                                 String      @id
+  first_name                         String
+  last_name                          String
+  phone                              String?     @unique @db.VarChar(10)
+  email                              String      @unique
+  password                           String
+  verified                           Boolean?    @default(false)
+  flag                               Boolean?    @default(false)
+  note                               String?
+  last_login                         DateTime    @default(now())
+  referral_code                      String?
+  parent_refferal_code               String?
+  ban_id                             Int         @default(1)
+  address_id                         String?     @unique
+  created_at                         DateTime    @default(now())
+  updated_at                         DateTime    @default(now()) @updatedAt
+  addresses                          addresses?  @relation(fields: [address_id], references: [id])
+  bans                               bans        @relation(fields: [ban_id], references: [id])
+  addresses_addresses_user_idTousers addresses[] @relation("addresses_user_idTousers")
+  orders                             orders[]
+  tokens                             tokens?
+}
+
+model addresses {
+  id                             String   @id
+  user_id                        String
+  flat_no                        String
+  building                       String
+  street_1                       String
+  street_2                       String?
+  landmark                       String?
+  location                       String?
+  created_at                     DateTime @default(now())
+  updated_at                     DateTime @default(now()) @updatedAt
+  serviceable                    Boolean? @default(true)
+  users_addresses_user_idTousers users    @relation("addresses_user_idTousers", fields: [user_id], references: [id])
+  orders                         orders[]
+  users                          users?
+}
+
+model orders {
+  id                  String    @id
+  no                  String
+  user_id             String
+  kitchen_id          String
+  address_id          String
+  invoice_no          String?
+  amount              Int
+  status_id           Int       @default(200)
+  alternative_address String?
+  user_note           String?
+  admin_note          String?
+  kitchen_note        String?
+  delivery_date       DateTime
+  cancellation_date   DateTime?
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @default(now()) @updatedAt
+  addresses           addresses @relation(fields: [address_id], references: [id])
+  kitchens            kitchens  @relation(fields: [kitchen_id], references: [id])
+  statuses            statuses  @relation(fields: [status_id], references: [id])
+  users               users     @relation(fields: [user_id], references: [id])
+  items               items[]
+}
+
+model kitchens {
+  id          String   @id
+  name        String
+  description String
+  username    String
+  password    String
+  phone       String?  @unique @db.VarChar(10)
+  phone2      String?  @db.VarChar(10)
+  email       String   @unique
+  active      Boolean  @default(true)
+  veg         Boolean?
+  image       String?
+  address_id  String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
+  menus       menus[]
+  orders      orders[]
+}
+
+model dishes {
+  id         String   @id
+  name       String
+  active     Boolean  @default(true)
+  image      String?
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+  menus      menus[]
+}
+
+model menus {
+  id          String   @unique
+  kitchen_id  String
+  dish_id     String
+  name        String?
+  subtitle    String?
+  description String?
+  active      Boolean  @default(true)
+  veg         Boolean  @default(true)
+  price       Int      @default(0)
+  discount    Int      @default(0)
+  image       String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
+  recommended Boolean  @default(false)
+  servings    String?
+  dishes      dishes   @relation(fields: [dish_id], references: [id])
+  kitchens    kitchens @relation(fields: [kitchen_id], references: [id])
+  items       items[]
+}
+
+model items {
+  id          Int      @id @default(autoincrement())
+  order_id    String
+  menu_id     String
+  quantity    Int
+  unit_price  Int
+  total_price Int
+  discount    Int?     @default(0)
+  created_at  DateTime @default(now())
+  menus       menus    @relation(fields: [menu_id], references: [id])
+  orders      orders   @relation(fields: [order_id], references: [id])
+}
+
+model statuses {
+  id      Int      @id
+  message String
+  orders  orders[]
+}
+
+model invitations {
+  id         Int       @id @default(autoincrement())
+  code       String    @unique
+  used       Boolean?  @default(false)
+  used_at    DateTime?
+  created_at DateTime  @default(now())
+}
