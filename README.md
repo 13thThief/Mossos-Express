@@ -8,20 +8,23 @@ No longer maintained.
 
 # Setup
 
-Requirements:
+#### Requirements:
 
 `node` and `npm` / `yarn`
 
-Installation:
+#### Installation:
 
 `npm i`
+
 `prisma generate`
+
 Use the appropriate `generate*.js` to create keys for encryption and authentication
-Run development server:
+
+#### Run development server:
 
 `npm run dev`
 
-Visit app:
+#### Visit app:
 
 `http://localhost:4000/`
 
